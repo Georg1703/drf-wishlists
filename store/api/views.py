@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
-from rest_framework.decorators import action
+from rest_framework import viewsets, status
+from rest_framework.decorators import action, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.mixins import (
     CreateModelMixin,
@@ -10,7 +11,7 @@ from rest_framework.mixins import (
 )
 
 from ..models import Product, WishList, WishListProduct
-from .serializers import ProductSerializer, WishListSerializer
+from .serializers import ProductSerializer, WishListSerializer, WishListProductSerializer
 
 
 class ProductViewSet(CreateModelMixin,
@@ -21,6 +22,7 @@ class ProductViewSet(CreateModelMixin,
 
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
+    permission_classes = [IsAuthenticated]
 
 
 class WishListViewSet(CreateModelMixin,
@@ -31,6 +33,7 @@ class WishListViewSet(CreateModelMixin,
 
     serializer_class = WishListSerializer
     queryset = WishList.objects.all()
+    permission_classes = [IsAuthenticated]
 
     @action(detail=False)
     def list(self, request, *args, **kwargs):
@@ -38,34 +41,23 @@ class WishListViewSet(CreateModelMixin,
         serializer = WishListSerializer(queryset, many=True)
         return Response(serializer.data)
 
+
     @action(detail=True)
-    def add_to_wishlist(self, request, *args, **kwargs):
-        data = {
-            'response': 'product was added to wishlist'
-        }
-        wishlist_id = request.data['wishlist']
-        product_id = request.data['product']
-        product = wishlist = ''
-
-        if not WishList.objects.filter(id=wishlist_id, user=request.user).exists():
-            data['response'] = 'wishlist does not exist'
-        wishlist = WishList.objects.get(id=wishlist_id, user=request.user)
-
-        if not Product.objects.filter(id=product_id).exists():
-            data['response'] = 'product does not exist'
-        product = Product.objects.get(id=product_id)
-
-        try:
-            relation = WishListProduct(wishlist=wishlist, product=product)
-            relation.save()
-            return Response(data)
-        except:
-            return Response(data)
+    def add_to_wishlist(self, request):
+        serializer = WishListProductSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
     @action(detail=True)
     def delete_product_from_wishlist(self, request, *args, **kwargs):
-        pass
+        serializer = WishListProductSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.delete()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
     @action(detail=True)
@@ -78,7 +70,7 @@ class WishListViewSet(CreateModelMixin,
             products = wishlist.wishlistproduct_set.all()
             data['products'] = [elem.product.name for elem in products]
         else:
-            data['response'] = 'wishlist does not exist'
+            data['wishlist'] = 'does not exist'
 
         return Response(data)
 

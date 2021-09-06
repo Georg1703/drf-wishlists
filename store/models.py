@@ -30,5 +30,8 @@ class WishListProduct(models.Model):
     wishlist = models.ForeignKey(WishList, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = ['wishlist', 'product']
+
     def __str__(self):
         return f'{self.wishlist.name} {self.product.name}'

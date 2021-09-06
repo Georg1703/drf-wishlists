@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..models import Product, WishList
+from ..models import Product, WishList, WishListProduct
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -19,3 +19,10 @@ class WishListSerializer(serializers.ModelSerializer):
     class Meta:
         model = WishList
         fields = ['id', 'name', 'user']
+
+
+class WishListProductSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = WishListProduct
+        fields = ['wishlist', 'product']

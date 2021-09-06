@@ -24,14 +24,16 @@ wishlist_detail = WishListViewSet.as_view({
 })
 
 wishlist_add_product = WishListViewSet.as_view({
-   'post': 'add_to_wishlist'
+   'post': 'add_to_wishlist',
+   'delete': 'delete_product_from_wishlist'
 })
 
 urlpatterns = format_suffix_patterns([
    path('products/', product_list, name='product-list'),
-   path('actor/<int:pk>/', product_detail, name='product-detail'),
+   path('product/<int:pk>/', product_detail, name='product-detail'),
 
    path('wishlists/', wishlist_list, name='wishlist_list'),
    path('wishlist/<int:pk>/', wishlist_detail, name='wishlist_detail'),
-   path('wishlist/add_product/', wishlist_add_product, name='wishlist_add_product'),
+
+   path('wishlist/product/', wishlist_add_product, name='wishlist_add_product'),
 ])
